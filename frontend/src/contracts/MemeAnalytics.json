@@ -1,0 +1,572 @@
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "_oracle",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "allMemeIds",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getMeme",
+    "inputs": [
+      {
+        "name": "_memeId",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct MemeAnalytics.MemeData",
+        "components": [
+          {
+            "name": "memeId",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "tokenSymbol",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "culturalScore",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "viralVelocity",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "sentimentScore",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "correlationScore",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "timestamp",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "region",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "isActive",
+            "type": "bool",
+            "internalType": "bool"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getRecentMemes",
+    "inputs": [
+      {
+        "name": "_tokenSymbol",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "_count",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple[]",
+        "internalType": "struct MemeAnalytics.MemeData[]",
+        "components": [
+          {
+            "name": "memeId",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "tokenSymbol",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "culturalScore",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "viralVelocity",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "sentimentScore",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "correlationScore",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "timestamp",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "region",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "isActive",
+            "type": "bool",
+            "internalType": "bool"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getTokenMemeCount",
+    "inputs": [
+      {
+        "name": "_tokenSymbol",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getTotalMemeCount",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getTrackedTokens",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "string[]",
+        "internalType": "string[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "memes",
+    "inputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "memeId",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "tokenSymbol",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "culturalScore",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "viralVelocity",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "sentimentScore",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "correlationScore",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "timestamp",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "region",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "isActive",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "oracle",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "owner",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "recordMeme",
+    "inputs": [
+      {
+        "name": "_memeId",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "_tokenSymbol",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "_culturalScore",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_viralVelocity",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_sentimentScore",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_correlationScore",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_region",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setOracle",
+    "inputs": [
+      {
+        "name": "_newOracle",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "tokenAnalyses",
+    "inputs": [
+      {
+        "name": "",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "tokenSymbol",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "totalMemeCount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "avgCulturalScore",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "priceCorrelation",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "trendDirection",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "lastUpdated",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "aiInsight",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "tokenMemes",
+    "inputs": [
+      {
+        "name": "",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "trackedTokens",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "updateTokenAnalysis",
+    "inputs": [
+      {
+        "name": "_tokenSymbol",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "_totalMemeCount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_avgCulturalScore",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_priceCorrelation",
+        "type": "int256",
+        "internalType": "int256"
+      },
+      {
+        "name": "_trendDirection",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_aiInsight",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "MemeRecorded",
+    "inputs": [
+      {
+        "name": "memeHash",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "memeId",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "tokenSymbol",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "culturalScore",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "timestamp",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OracleUpdated",
+    "inputs": [
+      {
+        "name": "oldOracle",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newOracle",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "TokenAnalysisUpdated",
+    "inputs": [
+      {
+        "name": "tokenSymbol",
+        "type": "string",
+        "indexed": true,
+        "internalType": "string"
+      },
+      {
+        "name": "avgCulturalScore",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "priceCorrelation",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "aiInsight",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      }
+    ],
+    "anonymous": false
+  }
+]

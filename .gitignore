@@ -12,3 +12,17 @@ docs/
 
 # Dotenv file
 .env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# Claude Code
+.claude/
