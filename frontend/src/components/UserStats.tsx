@@ -1,11 +1,10 @@
 "use client";
 
 import { useAccount, useChainId } from "wagmi";
-import { formatEther } from "viem";
-import { useUserData, useClaimDailyReward, useMemeTokenBalance } from "@/hooks/useContracts";
-import { getContractAddress } from "@/contracts";
+import { useUserData, useClaimDailyReward } from "@/hooks/useContracts";
 
 const TIER_NAMES = ["Bronze", "Silver", "Gold", "Platinum", "Diamond"];
+const TIER_EMOJIS = ["🥉", "🥈", "🥇", "💎", "👑"];
 
 export function UserStats() {
   const { address } = useAccount();
@@ -55,24 +54,49 @@ export function UserStats() {
     : true;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Profile Card */}
-      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-2xl">
-            {isContractsAvailable ? "🎮" : "🎭"}
+    <div className="space-y-6">
+      {/* Header Banner */}
+      <div className="bg-gradient-to-r from-purple-900/50 to-pink-900/50 rounded-xl p-6 border border-purple-700/50">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-4xl shadow-lg shadow-purple-500/30">
+              {TIER_EMOJIS[tier]}
+            </div>
+            <div>
+              <p className="text-gray-400 text-sm">Wallet Address</p>
+              <p className="font-mono text-lg">
+                {address?.slice(0, 6)}...{address?.slice(-4)}
+              </p>
+              <div className="flex items-center gap-2 mt-1">
+                <span className={`font-bold text-xl ${tierColors[currentTierName]}`}>
+                  {currentTierName}
+                </span>
+                <span className="text-gray-500">Tier</span>
+                {!isContractsAvailable && (
+                  <span className="text-xs bg-yellow-600/20 text-yellow-400 px-2 py-0.5 rounded">Demo</span>
+                )}
+              </div>
+            </div>
           </div>
-          <div>
-            <p className="text-gray-400 text-sm">Wallet</p>
-            <p className="font-mono">
-              {address?.slice(0, 6)}...{address?.slice(-4)}
+          <div className="text-right">
+            <p className="text-gray-400 text-sm">MEME Balance</p>
+            <p className="text-3xl font-bold text-green-400">
+              {isLoading ? "..." : parseFloat(balance).toFixed(2)}
             </p>
-            <p className={`font-bold ${tierColors[currentTierName]}`}>
-              {currentTierName} Tier
-              {!isContractsAvailable && <span className="text-xs text-gray-500 ml-2">(Demo)</span>}
-            </p>
+            <p className="text-xs text-gray-500">tokens</p>
           </div>
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Profile Card */}
+      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+        <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+          <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          Tier Progress
+        </h3>
 
         {/* Tier Progress */}
         <div className="mb-4">
@@ -100,20 +124,39 @@ export function UserStats() {
           </p>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-gray-900 rounded-lg p-3">
-            <p className="text-gray-400 text-xs">MEME Balance</p>
-            <p className="text-xl font-bold text-green-400">
-              {isLoading ? "..." : parseFloat(balance).toFixed(2)}
-            </p>
-          </div>
-          <div className="bg-gray-900 rounded-lg p-3">
-            <p className="text-gray-400 text-xs">Win Rate</p>
-            <p className="text-xl font-bold">
-              {winRate}%
-            </p>
-          </div>
+        {/* Tier Benefits */}
+        <div className="mt-4 p-3 bg-gray-900/50 rounded-lg">
+          <p className="text-xs text-gray-500 mb-2">Tier Benefits</p>
+          <ul className="text-sm text-gray-300 space-y-1">
+            <li className="flex items-center gap-2">
+              <span className="text-green-400">✓</span>
+              {tier >= 0 && "Basic predictions"}
+            </li>
+            <li className="flex items-center gap-2">
+              <span className={tier >= 1 ? "text-green-400" : "text-gray-600"}>
+                {tier >= 1 ? "✓" : "○"}
+              </span>
+              <span className={tier >= 1 ? "" : "text-gray-600"}>5% bonus rewards</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <span className={tier >= 2 ? "text-green-400" : "text-gray-600"}>
+                {tier >= 2 ? "✓" : "○"}
+              </span>
+              <span className={tier >= 2 ? "" : "text-gray-600"}>Early round access</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <span className={tier >= 3 ? "text-green-400" : "text-gray-600"}>
+                {tier >= 3 ? "✓" : "○"}
+              </span>
+              <span className={tier >= 3 ? "" : "text-gray-600"}>Create custom rounds</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <span className={tier >= 4 ? "text-green-400" : "text-gray-600"}>
+                {tier >= 4 ? "✓" : "○"}
+              </span>
+              <span className={tier >= 4 ? "" : "text-gray-600"}>VIP Discord access</span>
+            </li>
+          </ul>
         </div>
       </div>
 
@@ -207,6 +250,7 @@ export function UserStats() {
             </p>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

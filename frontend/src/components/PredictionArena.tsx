@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useAccount, useChainId } from "wagmi";
-import { formatEther } from "viem";
-import { useActiveRoundsCount, usePredictionRound, usePlacePrediction } from "@/hooks/useContracts";
+import { useActiveRoundsCount, usePlacePrediction } from "@/hooks/useContracts";
 import { getContractAddress } from "@/contracts";
+import { useTokenData } from "@/hooks/useTokenData";
+import { Tooltip, InfoIcon } from "./Tooltip";
 
 interface PredictionRound {
   id: number;
@@ -55,36 +56,105 @@ export function PredictionArena() {
   const { isConnected } = useAccount();
   const chainId = useChainId();
   const isContractAvailable = !!getContractAddress(chainId, "MemePrediction");
+  const { insights } = useTokenData();
 
   const { data: roundCount } = useActiveRoundsCount();
   const [rounds, setRounds] = useState<PredictionRound[]>(MOCK_ROUNDS);
+  const [userPredictions, setUserPredictions] = useState<Record<number, { direction: "up" | "down"; amount: string }>>({});
 
-  // Fetch on-chain rounds when available
+  // Generate dynamic rounds from real token data
   useEffect(() => {
-    if (isContractAvailable && roundCount) {
-      // For now, still show mock rounds but indicate chain status
-      setRounds(MOCK_ROUNDS.map(r => ({ ...r, isFromContract: false })));
+    if (insights.length > 0) {
+      const dynamicRounds: PredictionRound[] = insights.slice(0, 6).map((token, index) => ({
+        id: index + 1,
+        tokenSymbol: token.symbol,
+        initialScore: token.culturalScore,
+        endTime: Date.now() + (1 + index) * 1800000, // 30min intervals
+        totalUpStake: (Math.random() * 5 + 0.5).toFixed(2),
+        totalDownStake: (Math.random() * 5 + 0.5).toFixed(2),
+        status: "open" as const,
+        isFromContract: isContractAvailable,
+      }));
+      setRounds(dynamicRounds);
     }
-  }, [isContractAvailable, roundCount]);
+  }, [insights, isContractAvailable]);
+
+  const handlePredictionMade = (roundId: number, direction: "up" | "down", amount: string) => {
+    setUserPredictions(prev => ({
+      ...prev,
+      [roundId]: { direction, amount }
+    }));
+  };
+
+  // Calculate user stats
+  const totalPredictions = Object.keys(userPredictions).length;
+  const totalStaked = Object.values(userPredictions).reduce((sum, p) => sum + parseFloat(p.amount), 0);
 
   return (
-    <div>
-      {isContractAvailable && (
-        <div className="mb-4 bg-green-900/30 border border-green-700 rounded-lg p-3 flex items-center gap-2">
+    <div className="space-y-6">
+      {/* How it works */}
+      <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-xl p-5 border border-purple-700/50">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 bg-purple-600/30 rounded-lg flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="font-bold text-lg mb-2">How Prediction Arena Works</h3>
+            <ul className="text-sm text-gray-300 space-y-1">
+              <li>1. Choose a meme coin and predict if its Cultural Score will go UP or DOWN</li>
+              <li>2. Stake ETH on your prediction before the round ends</li>
+              <li>3. Winners split the pool proportionally to their stake</li>
+              <li>4. Scores are resolved based on real-time social + market data</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* User Stats */}
+      {totalPredictions > 0 && (
+        <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
+          <h4 className="text-sm text-gray-400 mb-3">Your Active Predictions</h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <p className="text-2xl font-bold text-purple-400">{totalPredictions}</p>
+              <p className="text-xs text-gray-500">Predictions</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-blue-400">{totalStaked.toFixed(3)} ETH</p>
+              <p className="text-xs text-gray-500">Total Staked</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-green-400">-</p>
+              <p className="text-xs text-gray-500">Win Rate</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-yellow-400">-</p>
+              <p className="text-xs text-gray-500">Total Earnings</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Connection Status */}
+      {isContractAvailable ? (
+        <div className="bg-green-900/20 border border-green-700/50 rounded-lg p-3 flex items-center gap-2">
+          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
           <span className="text-green-400 text-sm">
-            Connected to MemeCore (Chain ID: {chainId})
+            Connected to MemeCore (Chain ID: {chainId}) - Live predictions enabled
           </span>
         </div>
-      )}
-
-      {!isContractAvailable && (
-        <div className="mb-4 bg-yellow-900/30 border border-yellow-700 rounded-lg p-3 flex items-center gap-2">
+      ) : (
+        <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-3 flex items-center gap-2">
+          <div className="w-2 h-2 bg-yellow-400 rounded-full" />
           <span className="text-yellow-400 text-sm">
-            Demo mode - Connect to MemeCore network for live predictions
+            Demo Mode - Connect wallet to Anvil (localhost:8545) for live predictions
           </span>
         </div>
       )}
 
+      {/* Prediction Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {rounds.map((round) => (
           <PredictionCard
@@ -92,6 +162,8 @@ export function PredictionArena() {
             round={round}
             isConnected={isConnected}
             isContractAvailable={isContractAvailable}
+            userPrediction={userPredictions[round.id]}
+            onPredictionMade={handlePredictionMade}
           />
         ))}
       </div>
@@ -103,13 +175,19 @@ function PredictionCard({
   round,
   isConnected,
   isContractAvailable,
+  userPrediction,
+  onPredictionMade,
 }: {
   round: PredictionRound;
   isConnected: boolean;
   isContractAvailable: boolean;
+  userPrediction?: { direction: "up" | "down"; amount: string };
+  onPredictionMade: (roundId: number, direction: "up" | "down", amount: string) => void;
 }) {
   const [stakeAmount, setStakeAmount] = useState("0.1");
-  const [selectedDirection, setSelectedDirection] = useState<"up" | "down" | null>(null);
+  const [selectedDirection, setSelectedDirection] = useState<"up" | "down" | null>(
+    userPrediction?.direction || null
+  );
 
   const { placePrediction, isPending, isConfirming, isSuccess, error } = usePlacePrediction();
 
@@ -131,6 +209,11 @@ function PredictionCard({
       return;
     }
 
+    if (userPrediction) {
+      alert("You already placed a prediction on this round!");
+      return;
+    }
+
     setSelectedDirection(direction);
 
     if (isContractAvailable) {
@@ -140,13 +223,14 @@ function PredictionCard({
           direction === "up",
           stakeAmount
         );
+        onPredictionMade(round.id, direction, stakeAmount);
       } catch (err) {
         console.error("Prediction failed:", err);
       }
     } else {
-      // Demo mode
+      // Demo mode - simulate success
       console.log(`[Demo] Predicting ${direction} for round ${round.id} with ${stakeAmount} ETH`);
-      alert(`Demo: You predicted ${direction.toUpperCase()} with ${stakeAmount} ETH`);
+      onPredictionMade(round.id, direction, stakeAmount);
     }
   };
 
@@ -264,6 +348,27 @@ function PredictionCard({
           DOWN
         </button>
       </div>
+
+      {/* User's Prediction */}
+      {userPrediction && (
+        <div className={`mt-3 p-3 rounded-lg border ${
+          userPrediction.direction === "up"
+            ? "bg-green-900/20 border-green-700/50"
+            : "bg-red-900/20 border-red-700/50"
+        }`}>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-400">Your Prediction</span>
+            <span className={`font-bold ${
+              userPrediction.direction === "up" ? "text-green-400" : "text-red-400"
+            }`}>
+              {userPrediction.direction.toUpperCase()}
+            </span>
+          </div>
+          <p className="text-xs text-gray-500 mt-1">
+            Staked: {userPrediction.amount} ETH
+          </p>
+        </div>
+      )}
 
       {!isConnected && (
         <p className="text-center text-sm text-gray-500 mt-3">
