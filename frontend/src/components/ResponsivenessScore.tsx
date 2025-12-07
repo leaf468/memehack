@@ -100,10 +100,10 @@ export function ResponsivenessScore({ insights }: ResponsivenessScoreProps) {
       : 0;
 
   return (
-    <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
+    <div className="bg-gradient-to-br from-blue-900/30 to-cyan-900/20 rounded-xl p-5 border border-blue-700/50">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-lg font-bold">Responsiveness Score</h3>
+          <h3 className="text-lg font-bold text-white">Responsiveness Score</h3>
           <p className="text-xs text-gray-500">
             How reactive tokens are to market changes
           </p>
@@ -124,7 +124,7 @@ export function ResponsivenessScore({ insights }: ResponsivenessScoreProps) {
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <span className="text-gray-500 text-sm w-4">#{index + 1}</span>
-                <span className="font-bold">${token.symbol}</span>
+                <span className="font-bold text-white">${token.symbol}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-gray-400 text-sm">{token.score}/100</span>

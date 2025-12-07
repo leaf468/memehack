@@ -26,7 +26,47 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { tokens, type = "insight" } = body as { tokens: TokenData[]; type?: string };
+    const { tokens, type = "insight", prompt: directPrompt } = body as {
+      tokens?: TokenData[];
+      type?: string;
+      prompt?: string;
+    };
+
+    // Direct prompt mode (for meme captions, etc.)
+    if (directPrompt) {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            { role: "system", content: "You are a creative meme caption generator for crypto traders. Be funny, relatable, and brief." },
+            { role: "user", content: directPrompt },
+          ],
+          max_tokens: 100,
+          temperature: 0.9,
+        }),
+      });
+
+      if (!response.ok) {
+        return NextResponse.json(
+          { error: "AI service unavailable", fallback: true },
+          { status: 500 }
+        );
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content || "";
+
+      return NextResponse.json({
+        success: true,
+        content,
+        model: "gpt-4o-mini",
+      });
+    }
 
     if (!tokens || tokens.length === 0) {
       return NextResponse.json({ error: "No token data provided" }, { status: 400 });

@@ -103,9 +103,9 @@ export function MarketSentimentGauge({ insights }: MarketSentimentGaugeProps) {
   };
 
   return (
-    <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
+    <div className="bg-gradient-to-br from-purple-900/30 to-pink-900/20 rounded-xl p-5 border border-purple-700/50">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold">Market Sentiment</h3>
+        <h3 className="text-lg font-bold text-white">Market Sentiment</h3>
         <span className="text-xs text-gray-500">Real-time from token data</span>
       </div>
 

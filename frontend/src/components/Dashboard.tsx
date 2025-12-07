@@ -9,6 +9,13 @@ import { getMarketAIReport } from "@/services/openai";
 import { PriceAlerts } from "./PriceAlerts";
 import { MarketSentimentGauge } from "./MarketSentimentGauge";
 import { ResponsivenessScore } from "./ResponsivenessScore";
+import { Watchlist } from "./Watchlist";
+import { PriceComparisonChart } from "./PriceComparisonChart";
+import { TokenCorrelation } from "./TokenCorrelation";
+import { MemeGenerator } from "./MemeGenerator";
+import { ScreenshotToMeme } from "./ScreenshotToMeme";
+import { MemeVoting } from "./MemeVoting";
+import { MemeTimeline } from "./MemeTimeline";
 
 export function Dashboard() {
   const { isConnected } = useAccount();
@@ -94,6 +101,33 @@ export function Dashboard() {
           <MarketSentimentGauge insights={insights} />
           <ResponsivenessScore insights={insights} />
         </div>
+      )}
+
+      {/* Watchlist & Charts */}
+      {!isLoading && insights.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Watchlist insights={insights} />
+          <PriceComparisonChart insights={insights} />
+          <TokenCorrelation insights={insights} />
+        </div>
+      )}
+
+      {/* Meme Generator */}
+      {!isLoading && insights.length > 0 && (
+        <MemeGenerator insights={insights} />
+      )}
+
+      {/* Screenshot to Meme & Meme Voting */}
+      {!isLoading && insights.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <ScreenshotToMeme />
+          <MemeVoting />
+        </div>
+      )}
+
+      {/* Meme Timeline */}
+      {!isLoading && insights.length > 0 && (
+        <MemeTimeline insights={insights} />
       )}
 
       {/* AI Market Analysis */}
