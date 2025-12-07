@@ -24,6 +24,7 @@ export interface UseTokenDataResult {
   dataSource: {
     price: string;
     social: string;
+    sentiment: string;
   };
 }
 
@@ -86,6 +87,13 @@ export function useTokenData(): UseTokenDataResult {
     return () => clearInterval(interval);
   }, [fetchData]);
 
+  // 데이터 소스 통계 계산
+  const dataSourceStats = {
+    coinGeckoCount: insights.filter((i) => i.dataSource?.sentiment === "coingecko").length,
+    fearGreedCount: insights.filter((i) => i.dataSource?.sentiment === "fear_greed").length,
+    totalCount: insights.length,
+  };
+
   return {
     insights,
     report,
@@ -96,8 +104,9 @@ export function useTokenData(): UseTokenDataResult {
     lastUpdated,
     refresh: fetchData,
     dataSource: {
-      price: "DexScreener + CoinPaprika (Free, No API Key)",
-      social: "Reddit + SentiCrypt (Free, No API Key)",
+      price: "DexScreener + CoinPaprika (Real-time)",
+      social: `CoinGecko (${dataSourceStats.coinGeckoCount}/${dataSourceStats.totalCount} tokens) + Fear & Greed Index`,
+      sentiment: "CoinGecko Community Votes (Real)",
     },
   };
 }

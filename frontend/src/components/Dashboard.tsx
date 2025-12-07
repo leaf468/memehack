@@ -1,13 +1,47 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useAccount } from "wagmi";
 import { TokenCard } from "./TokenCard";
 import { useTokenData } from "@/hooks/useTokenData";
 import { formatMarketCap } from "@/services/dexscreener";
+import { getMarketAIReport } from "@/services/openai";
 
 export function Dashboard() {
   const { isConnected } = useAccount();
-  const { insights, report, isLoading, error, lastUpdated, refresh } = useTokenData();
+  const { insights, report, isLoading, error, lastUpdated, refresh, dataSource } = useTokenData();
+  const [aiReport, setAiReport] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+
+  // 실제 AI 리포트 생성
+  useEffect(() => {
+    async function fetchAIReport() {
+      if (insights.length === 0) return;
+
+      setAiLoading(true);
+      try {
+        const tokenData = insights.map((i) => ({
+          symbol: i.symbol,
+          name: i.name,
+          price: i.priceData.price,
+          change24h: i.priceData.change24h,
+          volume24h: i.priceData.volume24h,
+          marketCap: i.priceData.marketCap,
+          sentiment: i.sentimentScore,
+          communityScore: i.communityScore,
+        }));
+
+        const report = await getMarketAIReport(tokenData);
+        setAiReport(report);
+      } catch (err) {
+        console.error("AI report error:", err);
+      } finally {
+        setAiLoading(false);
+      }
+    }
+
+    fetchAIReport();
+  }, [insights]);
 
   // 통계 계산
   const totalMemes = insights.reduce((sum, i) => sum + i.memeCount, 0);
@@ -47,7 +81,7 @@ export function Dashboard() {
       </div>
 
       {/* AI Market Analysis */}
-      {report && (
+      {(report || aiReport) && (
         <div className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 rounded-xl p-6 border border-purple-700/50">
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
             <div className="flex-1">
@@ -58,11 +92,26 @@ export function Dashboard() {
                   </svg>
                 </div>
                 <h3 className="text-lg font-bold">AI Market Analysis</h3>
+                <span className="text-xs bg-green-600/20 text-green-400 px-2 py-0.5 rounded-full">
+                  GPT-4o-mini
+                </span>
               </div>
-              <p className="text-gray-300 leading-relaxed">{report.marketSummary}</p>
+              {aiLoading ? (
+                <div className="flex items-center gap-2 text-gray-400">
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Generating AI analysis...
+                </div>
+              ) : (
+                <p className="text-gray-300 leading-relaxed whitespace-pre-line">
+                  {aiReport || report?.marketSummary}
+                </p>
+              )}
 
               {/* Alerts */}
-              {report.alerts.length > 0 && (
+              {report && report.alerts.length > 0 && (
                 <div className="mt-4 flex flex-wrap gap-2">
                   {report.alerts.slice(0, 3).map((alert, i) => (
                     <span
@@ -189,6 +238,28 @@ export function Dashboard() {
             ))}
           </div>
         )}
+      </section>
+
+      {/* Data Sources */}
+      <section className="mt-8 p-4 bg-gray-800/50 rounded-xl border border-gray-700/50">
+        <h3 className="text-sm font-medium text-gray-400 mb-3">Data Sources (All Real-time APIs)</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-400 rounded-full" />
+            <span className="text-gray-500">Price:</span>
+            <span className="text-gray-300">{dataSource.price}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-400 rounded-full" />
+            <span className="text-gray-500">Social:</span>
+            <span className="text-gray-300">{dataSource.social}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-400 rounded-full" />
+            <span className="text-gray-500">AI:</span>
+            <span className="text-gray-300">OpenAI GPT-4o-mini</span>
+          </div>
+        </div>
       </section>
     </div>
   );

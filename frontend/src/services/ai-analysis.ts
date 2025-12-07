@@ -1,9 +1,10 @@
 // AI Analysis Service - Cultural Impact 분석 및 인사이트 생성
-// DexScreener + Reddit + SentiCrypt 데이터 통합 분석
+// DexScreener + CoinGecko Real Social Data + Fear & Greed 통합 분석
 
 import { TokenMarketData } from "./dexscreener";
 import { SubredditStats } from "./reddit";
-import { getMemeTokenSentiment, sentimentToLabel } from "./senticrypt";
+import { getMemeTokenSentiment, sentimentToLabel, getFearGreedIndex } from "./senticrypt";
+import { CoinGeckoSocialData, getCoinSocialData, calculateSentimentScore, calculateCommunityScore, generateSocialInsight } from "./coingecko-social";
 
 export interface TokenInsight {
   symbol: string;
@@ -14,8 +15,10 @@ export interface TokenInsight {
   insight: string;
   priceData: TokenMarketData;
   socialData?: SubredditStats;
-  sentimentScore?: number; // 0-100 from SentiCrypt
+  coinGeckoData?: CoinGeckoSocialData; // Real CoinGecko social data
+  sentimentScore?: number; // 0-100 from CoinGecko (real) or Fear & Greed (fallback)
   sentimentLabel?: "Bullish" | "Neutral" | "Bearish";
+  communityScore?: number; // 0-100 CoinGecko community activity
   riskLevel: "low" | "medium" | "high";
   prediction: {
     direction: "up" | "down" | "stable";
@@ -24,8 +27,12 @@ export interface TokenInsight {
   signals: {
     price: number;
     social: number;
-    sentiment: number; // SentiCrypt sentiment
+    sentiment: number; // Real CoinGecko sentiment
     momentum: number;
+  };
+  dataSource: {
+    sentiment: "coingecko" | "fear_greed" | "simulated";
+    social: "coingecko" | "reddit_sim";
   };
 }
 
@@ -48,55 +55,99 @@ export interface Alert {
 
 /**
  * 토큰별 종합 분석 및 인사이트 생성
+ * CoinGecko 실제 데이터 우선, Fear & Greed 폴백
  */
 export async function generateTokenInsight(
   priceData: TokenMarketData,
   socialData?: SubredditStats
 ): Promise<TokenInsight> {
-  // SentiCrypt 감정 데이터 가져오기
-  const sentimentScore = await getMemeTokenSentiment(priceData.symbol);
+  // 1. CoinGecko 실제 소셜/감정 데이터 시도
+  let coinGeckoData: CoinGeckoSocialData | null = null;
+  let sentimentScore: number;
+  let communityScore: number = 0;
+  let sentimentSource: "coingecko" | "fear_greed" | "simulated" = "simulated";
+  let socialSource: "coingecko" | "reddit_sim" = "reddit_sim";
+
+  try {
+    coinGeckoData = await getCoinSocialData(priceData.symbol);
+
+    if (coinGeckoData) {
+      // CoinGecko 실제 데이터 사용
+      sentimentScore = calculateSentimentScore(coinGeckoData);
+      communityScore = calculateCommunityScore(coinGeckoData);
+      sentimentSource = "coingecko";
+      socialSource = "coingecko";
+    } else {
+      // Fear & Greed 폴백
+      sentimentScore = await getMemeTokenSentiment(priceData.symbol);
+      sentimentSource = "fear_greed";
+    }
+  } catch (error) {
+    console.warn(`CoinGecko failed for ${priceData.symbol}, using Fear & Greed fallback`);
+    sentimentScore = await getMemeTokenSentiment(priceData.symbol);
+    sentimentSource = "fear_greed";
+  }
+
   const sentimentLabel = sentimentToLabel(sentimentScore);
 
-  // Cultural Score 계산 (0-10000) - 이제 SentiCrypt 데이터 포함
-  const culturalScore = calculateCulturalScore(priceData, socialData, sentimentScore);
+  // Cultural Score 계산 (0-10000) - CoinGecko 또는 Fear & Greed 데이터 사용
+  const culturalScore = calculateCulturalScore(priceData, socialData, sentimentScore, coinGeckoData);
 
-  // 트렌드 결정 - SentiCrypt 데이터 포함
-  const trend = determineTrend(priceData, socialData, sentimentScore);
+  // 트렌드 결정
+  const trend = determineTrend(priceData, socialData, sentimentScore, coinGeckoData);
 
   // 리스크 레벨 계산
-  const riskLevel = calculateRiskLevel(priceData, socialData, sentimentScore);
+  const riskLevel = calculateRiskLevel(priceData, socialData, sentimentScore, coinGeckoData);
 
-  // 시그널 계산 - SentiCrypt 데이터 포함
-  const signals = calculateSignals(priceData, socialData, sentimentScore);
+  // 시그널 계산
+  const signals = calculateSignals(priceData, socialData, sentimentScore, coinGeckoData);
 
   // 예측 생성
   const prediction = generatePrediction(signals, culturalScore);
 
-  // AI 인사이트 텍스트 생성
-  const insight = generateInsightText(priceData, socialData, signals, trend, sentimentScore);
+  // AI 인사이트 텍스트 생성 - CoinGecko 인사이트 우선 사용
+  let insight: string;
+  if (coinGeckoData) {
+    insight = generateSocialInsight(coinGeckoData);
+  } else {
+    insight = generateInsightText(priceData, socialData, signals, trend, sentimentScore);
+  }
 
   return {
     symbol: priceData.symbol,
     name: priceData.name,
     culturalScore,
-    memeCount: socialData?.mentionCount || Math.round(priceData.txns24h * 0.1),
+    memeCount: coinGeckoData?.communityData.redditSubscribers
+      ? Math.round(coinGeckoData.communityData.redditSubscribers / 1000)
+      : (socialData?.mentionCount || Math.round(priceData.txns24h * 0.1)),
     trend,
     insight,
     priceData,
     socialData,
+    coinGeckoData: coinGeckoData || undefined,
     sentimentScore,
     sentimentLabel,
+    communityScore,
     riskLevel,
     prediction,
     signals,
+    dataSource: {
+      sentiment: sentimentSource,
+      social: socialSource,
+    },
   };
 }
 
 /**
  * Cultural Impact Score 계산
- * SentiCrypt 감정 데이터 통합
+ * CoinGecko 실제 데이터 우선, Fear & Greed 폴백
  */
-function calculateCulturalScore(price: TokenMarketData, social?: SubredditStats, sentiment?: number): number {
+function calculateCulturalScore(
+  price: TokenMarketData,
+  social?: SubredditStats,
+  sentiment?: number,
+  coinGecko?: CoinGeckoSocialData | null
+): number {
   let score = 0;
 
   // 가격 모멘텀 (25%)
@@ -107,15 +158,22 @@ function calculateCulturalScore(price: TokenMarketData, social?: SubredditStats,
   const volumeScore = Math.min(100, (price.volume24h / 1e8) * 10);
   score += volumeScore * 15;
 
-  // 소셜 활동 (20%)
-  if (social) {
+  // 소셜 활동 (20%) - CoinGecko 우선
+  if (coinGecko) {
+    const redditScore = Math.min(50, coinGecko.communityData.redditSubscribers / 10000);
+    const telegramScore = coinGecko.communityData.telegramUsers
+      ? Math.min(30, coinGecko.communityData.telegramUsers / 10000)
+      : 0;
+    const devScore = Math.min(20, coinGecko.developerData.stars / 500);
+    score += (redditScore + telegramScore + devScore) * 20;
+  } else if (social) {
     const socialScore = Math.min(100, (social.mentionCount / 100) * 50 + (social.sentiment || 50));
     score += socialScore * 20;
   } else {
     score += 50 * 20; // 중립
   }
 
-  // SentiCrypt 감정 분석 (20%) - NEW
+  // 감정 분석 (20%) - CoinGecko 실제 데이터 또는 Fear & Greed
   const sentimentScore = sentiment || 50;
   score += sentimentScore * 20;
 
@@ -132,9 +190,14 @@ function calculateCulturalScore(price: TokenMarketData, social?: SubredditStats,
 
 /**
  * 시그널 계산
- * SentiCrypt 감정 데이터 통합
+ * CoinGecko 실제 데이터 우선
  */
-function calculateSignals(price: TokenMarketData, social?: SubredditStats, sentiment?: number): {
+function calculateSignals(
+  price: TokenMarketData,
+  social?: SubredditStats,
+  sentiment?: number,
+  coinGecko?: CoinGeckoSocialData | null
+): {
   price: number;
   social: number;
   sentiment: number;
@@ -143,15 +206,20 @@ function calculateSignals(price: TokenMarketData, social?: SubredditStats, senti
   // Price signal (-100 to 100)
   const priceSignal = Math.max(-100, Math.min(100, price.change24h * 5));
 
-  // Social signal (-100 to 100)
+  // Social signal (-100 to 100) - CoinGecko 우선
   let socialSignal = 0;
-  if (social) {
+  if (coinGecko) {
+    // CoinGecko 실제 데이터 사용
+    socialSignal = (coinGecko.sentimentVotesUpPercentage - 50) * 2;
+    if (coinGecko.communityData.redditActiveAccounts48h > 1000) socialSignal += 20;
+    if (coinGecko.developerData.commitCount4Weeks > 10) socialSignal += 15;
+  } else if (social) {
     socialSignal = (social.sentiment - 50) * 2;
     if (social.activeUsers > 1000) socialSignal += 20;
     if (social.postsLast24h > 50) socialSignal += 15;
   }
 
-  // SentiCrypt sentiment signal (-100 to 100)
+  // Sentiment signal (-100 to 100)
   const sentimentSignal = sentiment ? (sentiment - 50) * 2 : 0;
 
   // Momentum signal - 가격, 소셜, 감정 모두 반영
@@ -168,12 +236,17 @@ function calculateSignals(price: TokenMarketData, social?: SubredditStats, senti
 
 /**
  * 트렌드 결정
- * SentiCrypt 감정 데이터 통합
+ * CoinGecko 실제 데이터 우선
  */
-function determineTrend(price: TokenMarketData, social?: SubredditStats, sentiment?: number): number {
+function determineTrend(
+  price: TokenMarketData,
+  social?: SubredditStats,
+  sentiment?: number,
+  coinGecko?: CoinGeckoSocialData | null
+): number {
   const priceWeight = 0.4;
   const socialWeight = 0.2;
-  const sentimentWeight = 0.25; // SentiCrypt
+  const sentimentWeight = 0.25;
   const volumeWeight = 0.15;
 
   let score = 0;
@@ -183,8 +256,12 @@ function determineTrend(price: TokenMarketData, social?: SubredditStats, sentime
   else if (price.change24h > 0) score += 1 * priceWeight;
   else if (price.change24h > -5) score += 0.5 * priceWeight;
 
-  // 소셜 트렌드
-  if (social) {
+  // 소셜 트렌드 - CoinGecko 우선
+  if (coinGecko) {
+    if (coinGecko.sentimentVotesUpPercentage > 75) score += 2 * socialWeight;
+    else if (coinGecko.sentimentVotesUpPercentage > 55) score += 1 * socialWeight;
+    else score += 0.5 * socialWeight;
+  } else if (social) {
     if (social.sentiment > 70) score += 2 * socialWeight;
     else if (social.sentiment > 50) score += 1 * socialWeight;
     else score += 0.5 * socialWeight;
@@ -192,7 +269,7 @@ function determineTrend(price: TokenMarketData, social?: SubredditStats, sentime
     score += 1 * socialWeight;
   }
 
-  // SentiCrypt 감정 트렌드
+  // 감정 트렌드
   const sentimentScore = sentiment || 50;
   if (sentimentScore > 65) score += 2 * sentimentWeight;
   else if (sentimentScore > 50) score += 1 * sentimentWeight;
@@ -209,15 +286,29 @@ function determineTrend(price: TokenMarketData, social?: SubredditStats, sentime
 
 /**
  * 리스크 레벨 계산
- * SentiCrypt 감정 데이터 통합
+ * CoinGecko 실제 데이터 우선
  */
-function calculateRiskLevel(price: TokenMarketData, social?: SubredditStats, sentiment?: number): "low" | "medium" | "high" {
+function calculateRiskLevel(
+  price: TokenMarketData,
+  social?: SubredditStats,
+  sentiment?: number,
+  coinGecko?: CoinGeckoSocialData | null
+): "low" | "medium" | "high" {
   const volatility = Math.abs(price.change24h);
   const liquidityRisk = price.liquidity < 1e6 ? 2 : price.liquidity < 1e7 ? 1 : 0;
-  const socialSentimentRisk = social && social.sentiment < 40 ? 1 : 0;
-  const sentiCryptRisk = sentiment && sentiment < 35 ? 1 : 0; // SentiCrypt 감정 리스크
 
-  const totalRisk = (volatility > 20 ? 2 : volatility > 10 ? 1 : 0) + liquidityRisk + socialSentimentRisk + sentiCryptRisk;
+  // 소셜/감정 리스크 - CoinGecko 우선
+  let socialSentimentRisk = 0;
+  if (coinGecko) {
+    if (coinGecko.sentimentVotesUpPercentage < 35) socialSentimentRisk = 2;
+    else if (coinGecko.sentimentVotesUpPercentage < 45) socialSentimentRisk = 1;
+  } else if (social && social.sentiment < 40) {
+    socialSentimentRisk = 1;
+  }
+
+  const sentimentRisk = sentiment && sentiment < 35 ? 1 : 0;
+
+  const totalRisk = (volatility > 20 ? 2 : volatility > 10 ? 1 : 0) + liquidityRisk + socialSentimentRisk + sentimentRisk;
 
   if (totalRisk >= 4) return "high";
   if (totalRisk >= 2) return "medium";

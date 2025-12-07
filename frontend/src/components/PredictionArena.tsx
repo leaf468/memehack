@@ -101,8 +101,8 @@ export function PredictionArena() {
             </svg>
           </div>
           <div>
-            <h3 className="font-bold text-lg mb-2">How Prediction Arena Works</h3>
-            <ul className="text-sm text-gray-300 space-y-1">
+            <h3 className="font-bold text-lg mb-2 text-gray-100">How Prediction Arena Works</h3>
+            <ul className="text-sm text-gray-200 space-y-1">
               <li>1. Choose a meme coin and predict if its Cultural Score will go UP or DOWN</li>
               <li>2. Stake ETH on your prediction before the round ends</li>
               <li>3. Winners split the pool proportionally to their stake</li>

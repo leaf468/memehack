@@ -72,8 +72,8 @@ export function TokenCard({
             </div>
           )}
           <div>
-            <h3 className="font-bold text-lg">${symbol}</h3>
-            <p className="text-xs text-gray-500">{name}</p>
+            <h3 className="font-bold text-lg text-gray-100">${symbol}</h3>
+            <p className="text-xs text-gray-400">{name}</p>
           </div>
         </div>
         <Tooltip
@@ -100,7 +100,7 @@ export function TokenCard({
       {price !== undefined && (
         <div className="flex items-baseline justify-between mb-4 pb-4 border-b border-gray-700">
           <div>
-            <p className="text-2xl font-bold">${formatPrice(price)}</p>
+            <p className="text-2xl font-bold text-gray-100">${formatPrice(price)}</p>
             {marketCap && (
               <p className="text-xs text-gray-500">MCap: {formatMarketCap(marketCap)}</p>
             )}
