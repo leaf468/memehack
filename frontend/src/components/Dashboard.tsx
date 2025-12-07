@@ -105,7 +105,7 @@ export function Dashboard() {
                   Generating AI analysis...
                 </div>
               ) : (
-                <p className="text-gray-300 leading-relaxed whitespace-pre-line">
+                <p className="text-gray-100 leading-relaxed whitespace-pre-line">
                   {aiReport || report?.marketSummary}
                 </p>
               )}

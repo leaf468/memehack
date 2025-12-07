@@ -38,6 +38,10 @@ const COINGECKO_IDS: Record<string, string> = {
   POPCAT: "popcat",
   MOG: "mog-coin",
   NEIRO: "neiro-3",
+  MEME: "memecoin-2",
+  TURBO: "turbo",
+  LADYS: "milady-meme-coin",
+  SPX: "spx6900",
 };
 
 let cachedData: Map<string, CoinGeckoSocialData> = new Map();

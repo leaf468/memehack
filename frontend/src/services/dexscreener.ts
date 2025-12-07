@@ -60,14 +60,24 @@ export interface TokenMarketData {
   chain: string;
 }
 
-// 밈코인 컨트랙트 주소 (Ethereum mainnet)
+// 밈코인 컨트랙트 주소
 const MEME_TOKENS: Record<string, { address: string; chain: string }> = {
+  // Ethereum tokens
   PEPE: { address: "0x6982508145454Ce325dDbE47a25d4ec3d2311933", chain: "ethereum" },
   SHIB: { address: "0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE", chain: "ethereum" },
   FLOKI: { address: "0xcf0C122c6b73ff809C693DB761e7BaeBe62b6a2E", chain: "ethereum" },
+  MOG: { address: "0xaaeE1A9723aaDB7afA2810263653A34bA2C21C7a", chain: "ethereum" },
+  NEIRO: { address: "0x812Ba41e071C7b7fA4EBcFB62dF5F45f6fA853Ee", chain: "ethereum" },
+  MEME: { address: "0xb131f4A55907B10d1F0A50d8ab8FA09EC342cd74", chain: "ethereum" },
+  TURBO: { address: "0xA35923162C49cF95e6BF26623385eb431ad920D3", chain: "ethereum" },
+  LADYS: { address: "0x12970E6868f88f6557B76120662c1B3E50A646bf", chain: "ethereum" },
+  SPX: { address: "0xE0f63A424a4439cBE457D80E4f4b51aD25b2c56C", chain: "ethereum" },
   // Solana tokens
   WIF: { address: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm", chain: "solana" },
   BONK: { address: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263", chain: "solana" },
+  POPCAT: { address: "7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr", chain: "solana" },
+  // Base chain tokens
+  BRETT: { address: "0x532f27101965dd16442E59d40670FaF5eBB142E4", chain: "base" },
 };
 
 // DOGE는 DexScreener에서 직접 지원 안됨 - CoinPaprika 사용 (무료, API 키 불필요)
@@ -215,6 +225,14 @@ function getFallbackData(): TokenMarketData[] {
     { symbol: "WIF", name: "dogwifhat", price: 2.5, change24h: -5.2, change1h: -1.1, volume24h: 3e8, marketCap: 2.5e9, liquidity: 0, txns24h: 0, buySellRatio: 1, image: "", trend: 0, chain: "solana" },
     { symbol: "BONK", name: "Bonk", price: 0.00003, change24h: 1.5, change1h: 0.2, volume24h: 2e8, marketCap: 2e9, liquidity: 0, txns24h: 0, buySellRatio: 1, image: "", trend: 1, chain: "solana" },
     { symbol: "FLOKI", name: "Floki", price: 0.0002, change24h: -2.1, change1h: -0.4, volume24h: 1.5e8, marketCap: 1.8e9, liquidity: 0, txns24h: 0, buySellRatio: 1, image: "", trend: 1, chain: "ethereum" },
+    { symbol: "MOG", name: "Mog Coin", price: 0.0000018, change24h: 3.2, change1h: 0.8, volume24h: 8e7, marketCap: 7e8, liquidity: 0, txns24h: 0, buySellRatio: 1, image: "", trend: 2, chain: "ethereum" },
+    { symbol: "BRETT", name: "Brett", price: 0.12, change24h: 1.8, change1h: 0.3, volume24h: 5e7, marketCap: 1.2e9, liquidity: 0, txns24h: 0, buySellRatio: 1, image: "", trend: 1, chain: "base" },
+    { symbol: "POPCAT", name: "Popcat", price: 0.8, change24h: -2.5, change1h: -0.5, volume24h: 4e7, marketCap: 8e8, liquidity: 0, txns24h: 0, buySellRatio: 1, image: "", trend: 0, chain: "solana" },
+    { symbol: "NEIRO", name: "Neiro", price: 0.0012, change24h: 5.5, change1h: 1.0, volume24h: 6e7, marketCap: 5e8, liquidity: 0, txns24h: 0, buySellRatio: 1, image: "", trend: 2, chain: "ethereum" },
+    { symbol: "MEME", name: "Memecoin", price: 0.012, change24h: -1.5, change1h: -0.2, volume24h: 3e7, marketCap: 4e8, liquidity: 0, txns24h: 0, buySellRatio: 1, image: "", trend: 1, chain: "ethereum" },
+    { symbol: "TURBO", name: "Turbo", price: 0.008, change24h: 4.2, change1h: 0.6, volume24h: 2.5e7, marketCap: 3.5e8, liquidity: 0, txns24h: 0, buySellRatio: 1, image: "", trend: 2, chain: "ethereum" },
+    { symbol: "LADYS", name: "Milady Meme Coin", price: 0.00000015, change24h: -3.1, change1h: -0.7, volume24h: 2e7, marketCap: 1.5e8, liquidity: 0, txns24h: 0, buySellRatio: 1, image: "", trend: 0, chain: "ethereum" },
+    { symbol: "SPX", name: "SPX6900", price: 0.85, change24h: 6.5, change1h: 1.5, volume24h: 5e7, marketCap: 8e8, liquidity: 0, txns24h: 0, buySellRatio: 1, image: "", trend: 2, chain: "ethereum" },
   ];
 }
 
