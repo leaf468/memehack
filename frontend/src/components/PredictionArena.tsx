@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAccount, useChainId } from "wagmi";
 import { useActiveRoundsCount, usePlacePrediction } from "@/hooks/useContracts";
 import { getContractAddress } from "@/contracts";
@@ -16,9 +16,12 @@ interface PredictionRound {
   totalDownStake: string;
   status: "open" | "closed" | "resolved";
   isFromContract: boolean;
+  predictionType?: "score_up" | "viral" | "price_target";
+  targetValue?: number;
+  participants?: number;
 }
 
-// Fallback mock data when contracts not available
+// Enhanced mock data with more variety
 const MOCK_ROUNDS: PredictionRound[] = [
   {
     id: 1,
@@ -29,6 +32,8 @@ const MOCK_ROUNDS: PredictionRound[] = [
     totalDownStake: "1.8",
     status: "open",
     isFromContract: false,
+    predictionType: "score_up",
+    participants: 47,
   },
   {
     id: 2,
@@ -39,6 +44,8 @@ const MOCK_ROUNDS: PredictionRound[] = [
     totalDownStake: "3.1",
     status: "open",
     isFromContract: false,
+    predictionType: "viral",
+    participants: 89,
   },
   {
     id: 3,
@@ -49,7 +56,25 @@ const MOCK_ROUNDS: PredictionRound[] = [
     totalDownStake: "2.4",
     status: "open",
     isFromContract: false,
+    predictionType: "score_up",
+    participants: 156,
   },
+];
+
+// Mock leaderboard data
+const MOCK_LEADERBOARD = [
+  { rank: 1, address: "0x1234...5678", winRate: 78, totalPredictions: 45, earnings: "12.5 ETH" },
+  { rank: 2, address: "0xabcd...ef01", winRate: 72, totalPredictions: 38, earnings: "8.2 ETH" },
+  { rank: 3, address: "0x9876...5432", winRate: 68, totalPredictions: 52, earnings: "6.8 ETH" },
+  { rank: 4, address: "0xfedc...ba98", winRate: 65, totalPredictions: 29, earnings: "4.1 ETH" },
+  { rank: 5, address: "0x5555...6666", winRate: 62, totalPredictions: 41, earnings: "3.5 ETH" },
+];
+
+// Mock past predictions (resolved)
+const MOCK_PAST_PREDICTIONS = [
+  { id: 101, tokenSymbol: "SHIB", result: "up", finalScore: 7850, winners: 234, pool: "15.2 ETH" },
+  { id: 102, tokenSymbol: "BONK", result: "down", finalScore: 6200, winners: 156, pool: "8.7 ETH" },
+  { id: 103, tokenSymbol: "FLOKI", result: "up", finalScore: 8100, winners: 89, pool: "5.4 ETH" },
 ];
 
 export function PredictionArena() {
@@ -57,6 +82,7 @@ export function PredictionArena() {
   const chainId = useChainId();
   const isContractAvailable = !!getContractAddress(chainId, "MemePrediction");
   const { insights } = useTokenData();
+  const [activeTab, setActiveTab] = useState<"live" | "past" | "leaderboard">("live");
 
   const { data: roundCount } = useActiveRoundsCount();
   const [rounds, setRounds] = useState<PredictionRound[]>(MOCK_ROUNDS);
@@ -95,7 +121,7 @@ export function PredictionArena() {
       {/* How it works */}
       <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-xl p-5 border border-purple-700/50">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 bg-purple-600/30 rounded-lg flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 bg-purple-600/30 rounded-lg flex items-center justify-center shrink-0">
             <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -149,24 +175,143 @@ export function PredictionArena() {
         <div className="bg-yellow-900/20 border border-yellow-700/50 rounded-lg p-3 flex items-center gap-2">
           <div className="w-2 h-2 bg-yellow-400 rounded-full" />
           <span className="text-yellow-400 text-sm">
-            Demo Mode - Connect wallet to Anvil (localhost:8545) for live predictions
+            Demo Mode - Connect wallet to MemeCore Testnet for live predictions
           </span>
         </div>
       )}
 
-      {/* Prediction Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {rounds.map((round) => (
-          <PredictionCard
-            key={round.id}
-            round={round}
-            isConnected={isConnected}
-            isContractAvailable={isContractAvailable}
-            userPrediction={userPredictions[round.id]}
-            onPredictionMade={handlePredictionMade}
-          />
+      {/* Tabs */}
+      <div className="flex gap-2 border-b border-gray-700 pb-2">
+        {[
+          { id: "live" as const, label: "Live Rounds", icon: "🔴" },
+          { id: "past" as const, label: "Past Results", icon: "📊" },
+          { id: "leaderboard" as const, label: "Leaderboard", icon: "🏆" },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === tab.id
+                ? "bg-purple-600 text-white"
+                : "text-gray-400 hover:text-white hover:bg-gray-800"
+            }`}
+          >
+            <span>{tab.icon}</span>
+            <span>{tab.label}</span>
+          </button>
         ))}
       </div>
+
+      {/* Live Predictions */}
+      {activeTab === "live" && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {rounds.map((round) => (
+            <PredictionCard
+              key={round.id}
+              round={round}
+              isConnected={isConnected}
+              isContractAvailable={isContractAvailable}
+              userPrediction={userPredictions[round.id]}
+              onPredictionMade={handlePredictionMade}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Past Predictions */}
+      {activeTab === "past" && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-bold text-gray-200">Recently Resolved Predictions</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {MOCK_PAST_PREDICTIONS.map((pred) => (
+              <div
+                key={pred.id}
+                className="bg-gray-800 rounded-xl p-5 border border-gray-700"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xl font-bold">${pred.tokenSymbol}</span>
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-bold ${
+                      pred.result === "up"
+                        ? "bg-green-900/50 text-green-400 border border-green-700"
+                        : "bg-red-900/50 text-red-400 border border-red-700"
+                    }`}
+                  >
+                    {pred.result === "up" ? "UP" : "DOWN"}
+                  </span>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Final Score</span>
+                    <span className="text-white">{(pred.finalScore / 100).toFixed(1)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Winners</span>
+                    <span className="text-green-400">{pred.winners}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Total Pool</span>
+                    <span className="text-purple-400">{pred.pool}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Leaderboard */}
+      {activeTab === "leaderboard" && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-bold text-gray-200">Top Predictors</h3>
+          <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-gray-900">
+                <tr className="text-left text-sm text-gray-400">
+                  <th className="px-4 py-3">Rank</th>
+                  <th className="px-4 py-3">Address</th>
+                  <th className="px-4 py-3">Win Rate</th>
+                  <th className="px-4 py-3">Predictions</th>
+                  <th className="px-4 py-3">Earnings</th>
+                </tr>
+              </thead>
+              <tbody>
+                {MOCK_LEADERBOARD.map((user) => (
+                  <tr
+                    key={user.rank}
+                    className="border-t border-gray-700 hover:bg-gray-700/50 transition-colors"
+                  >
+                    <td className="px-4 py-3">
+                      <span
+                        className={`font-bold ${
+                          user.rank === 1
+                            ? "text-yellow-400"
+                            : user.rank === 2
+                            ? "text-gray-300"
+                            : user.rank === 3
+                            ? "text-orange-400"
+                            : "text-gray-400"
+                        }`}
+                      >
+                        #{user.rank}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 font-mono text-sm">{user.address}</td>
+                    <td className="px-4 py-3">
+                      <span className="text-green-400">{user.winRate}%</span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-300">{user.totalPredictions}</td>
+                    <td className="px-4 py-3 text-purple-400 font-medium">{user.earnings}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-xs text-gray-500 text-center">
+            Leaderboard updates daily based on prediction accuracy
+          </p>
+        </div>
+      )}
     </div>
   );
 }

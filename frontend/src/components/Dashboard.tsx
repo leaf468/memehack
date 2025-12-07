@@ -6,6 +6,9 @@ import { TokenCard } from "./TokenCard";
 import { useTokenData } from "@/hooks/useTokenData";
 import { formatMarketCap } from "@/services/dexscreener";
 import { getMarketAIReport } from "@/services/openai";
+import { PriceAlerts } from "./PriceAlerts";
+import { MarketSentimentGauge } from "./MarketSentimentGauge";
+import { ResponsivenessScore } from "./ResponsivenessScore";
 
 export function Dashboard() {
   const { isConnected } = useAccount();
@@ -79,6 +82,19 @@ export function Dashboard() {
           color="orange"
         />
       </div>
+
+      {/* Price Alerts */}
+      {!isLoading && insights.length > 0 && (
+        <PriceAlerts insights={insights} />
+      )}
+
+      {/* Market Intelligence Grid */}
+      {!isLoading && insights.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <MarketSentimentGauge insights={insights} />
+          <ResponsivenessScore insights={insights} />
+        </div>
+      )}
 
       {/* AI Market Analysis */}
       {(report || aiReport) && (
