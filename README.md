@@ -1,12 +1,50 @@
 # MISP - Meme Intelligence Social Platform
 
-A decentralized platform for tracking, analyzing, and predicting meme coin cultural impact using AI-powered insights and on-chain analytics.
+> **"The Bloomberg Terminal for Meme Coins + Meme Factory"**
+
+A decentralized platform that combines real-time market intelligence, AI-powered meme generation, and on-chain prediction markets for meme coin traders.
 
 **Built for Memekathon Seoul 2025**
 
-## Overview
+![MISP Dashboard](https://img.shields.io/badge/Status-Live-brightgreen) ![Next.js](https://img.shields.io/badge/Next.js-16-black) ![Solidity](https://img.shields.io/badge/Solidity-0.8.20-blue)
 
-MISP combines real-time market data, social sentiment analysis, and AI-powered insights to help users understand the cultural momentum behind meme coins. The platform features on-chain prediction markets and a reward system for accurate predictions.
+## Key Features
+
+### 1. Cultural Impact Score
+Unlike traditional price-only dashboards, MISP quantifies the **viral power** of meme coins:
+- AI-generated score (0-100) based on social momentum
+- Community engagement metrics
+- Meme activity tracking
+- Real-time sentiment analysis
+
+### 2. AI Meme Generator
+Create viral memes directly from market data:
+- **Live Chart Background**: TradingView charts as meme backgrounds
+- **AI Captions**: GPT-4o-mini generates context-aware meme text
+- **Template Gallery**: Drake, Stonks, Doge, Pepe, Wojak, Giga Chad
+- **One-Click Share**: Export to X (Twitter), copy to clipboard, or download PNG
+
+### 3. On-Chain Prediction Markets
+Bet on meme coin performance with smart contracts:
+- Predict: Score Up, Viral Moment, Price Target
+- Stake tokens and earn rewards
+- Transparent on-chain settlement
+
+### 4. Real-Time Analytics Dashboard
+- **14+ Meme Coins** tracked across Ethereum, Solana, Base
+- **Market Sentiment Gauge**: Visual fear/greed indicator
+- **Meme Timeline**: Real-time viral events and price pumps
+- **Token Correlation**: Identify correlated meme coins
+- **Watchlist**: Personal token tracking with alerts
+
+## Demo Highlights
+
+| Feature | Description |
+|---------|-------------|
+| Cultural Score | See meme viral potential, not just price |
+| Meme Generator | AI creates captions, share to X in one click |
+| Prediction Market | On-chain betting on meme performance |
+| Timeline | Real-time feed of viral moments |
 
 ## Deployed Contracts (MemeCore Formicarium Testnet)
 
@@ -20,74 +58,67 @@ MISP combines real-time market data, social sentiment analysis, and AI-powered i
 **Network:** MemeCore Formicarium Testnet (Chain ID: 43521)
 **Explorer:** https://formicarium.memecorescan.io
 
-## Features
-
-### Real-time Token Analysis
-- Track 14+ meme coins across Ethereum, Solana, and Base chains
-- Live price data from DexScreener and CoinPaprika APIs
-- Social sentiment from CoinGecko community data
-
-### Cultural Impact Score
-AI-generated score (0-100) based on:
-- Viral momentum and meme activity
-- Community engagement metrics
-- Price action and volume trends
-- Social media sentiment
-
-### On-chain Prediction Markets
-- Predict meme coin performance (Score Up, Viral, Price Target)
-- Stake tokens on predictions
-- Earn rewards for accurate predictions
-
-### AI Market Analysis
-- GPT-4o-mini powered market insights
-- Real-time sentiment analysis
-- Trend identification and alerts
-
 ## Tech Stack
 
 ### Smart Contracts (Solidity)
 - **MemeToken**: ERC20 governance token with minting/burning
-- **MemeAnalytics**: On-chain cultural score tracking with oracle updates
-- **MemePrediction**: Prediction market for meme coin performance
-- **MemeReward**: Staking and reward distribution system
+- **MemeAnalytics**: On-chain cultural score tracking
+- **MemePrediction**: Prediction market with staking
+- **MemeReward**: Reward distribution system
 
-### Frontend (Next.js 14)
-- React with TypeScript
-- Tailwind CSS for styling
-- wagmi + viem for Web3 integration
+### Frontend (Next.js 16)
+- React 19 + TypeScript
+- Tailwind CSS
+- wagmi v2 + viem for Web3
 - ConnectKit for wallet connection
+- TradingView widget integration
 
-### Data Sources
-- **DexScreener API**: Real-time DEX price data (free, no API key)
-- **CoinPaprika API**: DOGE price data (free, no API key)
+### AI & Data
+- **OpenAI GPT-4o-mini**: Meme caption generation, market insights
+- **DexScreener API**: Real-time DEX prices
 - **CoinGecko API**: Social & sentiment data
-- **OpenAI API**: AI market analysis (GPT-4o-mini)
+- **CoinPaprika API**: Additional price feeds
+
+## Dashboard Components
+
+| Component | Description |
+|-----------|-------------|
+| `TokenGrid` | Main token cards with price, sentiment, cultural score |
+| `MemeGenerator` | AI-powered meme creation with chart backgrounds |
+| `MemeTimeline` | Real-time viral events feed |
+| `MemeVoting` | Community meme voting (Hot/New/Top) |
+| `MarketSentimentGauge` | Visual market fear/greed indicator |
+| `PriceAlerts` | Custom price movement alerts |
+| `Watchlist` | Personal token tracking |
+| `PriceComparisonChart` | Multi-token price comparison |
+| `TokenCorrelation` | Correlation matrix between tokens |
+| `ResponsivenessScore` | Token reactivity to market changes |
 
 ## Supported Tokens
 
-| Token | Chain | Contract |
-|-------|-------|----------|
-| PEPE | Ethereum | 0x6982508145454Ce325dDbE47a25d4ec3d2311933 |
-| SHIB | Ethereum | 0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE |
-| DOGE | Multi-chain | - |
-| WIF | Solana | EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm |
-| BONK | Solana | DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263 |
-| FLOKI | Ethereum | 0xcf0C122c6b73ff809C693DB761e7BaeBe62b6a2E |
-| MOG | Ethereum | 0xaaeE1A9723aaDB7afA2810263653A34bA2C21C7a |
-| BRETT | Base | 0x532f27101965dd16442E59d40670FaF5eBB142E4 |
-| POPCAT | Solana | 7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr |
-| NEIRO | Ethereum | 0x812Ba41e071C7b7fA4EBcFB62dF5F45f6fA853Ee |
-| MEME | Ethereum | 0xb131f4A55907B10d1F0A50d8ab8FA09EC342cd74 |
-| TURBO | Ethereum | 0xA35923162C49cF95e6BF26623385eb431ad920D3 |
-| LADYS | Ethereum | 0x12970E6868f88f6557B76120662c1B3E50A646bf |
-| SPX | Ethereum | 0xE0f63A424a4439cBE457D80E4f4b51aD25b2c56C |
+| Token | Chain | Description |
+|-------|-------|-------------|
+| PEPE | Ethereum | The original Pepe meme coin |
+| SHIB | Ethereum | Shiba Inu ecosystem |
+| DOGE | Multi-chain | The OG meme coin |
+| WIF | Solana | Dogwifhat |
+| BONK | Solana | Solana's dog coin |
+| FLOKI | Ethereum | Viking-themed meme |
+| MOG | Ethereum | Mog Coin |
+| BRETT | Base | Base chain meme |
+| POPCAT | Solana | Pop Cat meme |
+| NEIRO | Ethereum | New Doge tribute |
+| MEME | Ethereum | Memecoin token |
+| TURBO | Ethereum | AI-created meme coin |
+| LADYS | Ethereum | Milady meme |
+| SPX | Ethereum | SPX6900 |
 
 ## Getting Started
 
 ### Prerequisites
 - Node.js 18+
 - Foundry (for smart contracts)
+- OpenAI API key (for AI features)
 
 ### Smart Contracts
 
@@ -141,32 +172,38 @@ PRIVATE_KEY=your_wallet_private_key
 ## Architecture
 
 ```
-┌─────────────────┐     ┌──────────────────┐
-│   Frontend      │────▶│  DexScreener API │
-│   (Next.js)     │     └──────────────────┘
-│                 │     ┌──────────────────┐
-│                 │────▶│  CoinPaprika API │
-│                 │     └──────────────────┘
-│                 │     ┌──────────────────┐
-│                 │────▶│  OpenAI API      │
-│                 │     └──────────────────┘
-│                 │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  MemeCore Chain │
-│  ┌───────────┐  │
-│  │MemeToken  │  │
-│  ├───────────┤  │
-│  │Analytics  │  │
-│  ├───────────┤  │
-│  │Prediction │  │
-│  ├───────────┤  │
-│  │MemeReward │  │
-│  └───────────┘  │
-└─────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│                    MISP Frontend                         │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
+│  │ Dashboard   │  │ Meme Gen    │  │ Predictions │     │
+│  │ + Analytics │  │ + AI Caption│  │ + Staking   │     │
+│  └─────────────┘  └─────────────┘  └─────────────┘     │
+└────────────────────────┬────────────────────────────────┘
+                         │
+         ┌───────────────┼───────────────┐
+         ▼               ▼               ▼
+┌─────────────┐  ┌─────────────┐  ┌─────────────┐
+│ DexScreener │  │   OpenAI    │  │  CoinGecko  │
+│  (Prices)   │  │ (AI/Memes)  │  │ (Sentiment) │
+└─────────────┘  └─────────────┘  └─────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────┐
+│                 MemeCore Blockchain                      │
+│  ┌───────────┐ ┌───────────┐ ┌───────────┐ ┌─────────┐ │
+│  │ MemeToken │ │ Analytics │ │Prediction │ │ Reward  │ │
+│  │  (ERC20)  │ │  (Score)  │ │ (Market)  │ │(Staking)│ │
+│  └───────────┘ └───────────┘ └───────────┘ └─────────┘ │
+└─────────────────────────────────────────────────────────┘
 ```
+
+## One-Line Pitch
+
+> **MISP transforms meme coin trading from price speculation to cultural intelligence, letting traders create, share, and profit from meme virality.**
+
+## Team
+
+Built with AI assistance at Memekathon Seoul 2025
 
 ## License
 
