@@ -12,50 +12,43 @@ contract MemeAnalytics {
 
     // 밈 데이터 구조체
     struct MemeData {
-        string memeId;           // 밈 고유 식별자
-        string tokenSymbol;      // 관련 토큰 심볼 (예: WIF, PEPE)
-        uint256 culturalScore;   // Cultural Impact Score (0-10000, 소수점 2자리)
-        uint256 viralVelocity;   // 확산 속도 점수
-        uint256 sentimentScore;  // 감성 분석 점수 (0-10000)
+        string memeId; // 밈 고유 식별자
+        string tokenSymbol; // 관련 토큰 심볼 (예: WIF, PEPE)
+        uint256 culturalScore; // Cultural Impact Score (0-10000, 소수점 2자리)
+        uint256 viralVelocity; // 확산 속도 점수
+        uint256 sentimentScore; // 감성 분석 점수 (0-10000)
         uint256 correlationScore; // 가격 상관도 점수
-        uint256 timestamp;       // 기록 시간
-        string region;           // 주요 확산 지역
-        bool isActive;           // 활성 상태
+        uint256 timestamp; // 기록 시간
+        string region; // 주요 확산 지역
+        bool isActive; // 활성 상태
     }
 
     // 토큰별 분석 요약
     struct TokenAnalysis {
         string tokenSymbol;
-        uint256 totalMemeCount;      // 관련 밈 총 개수
-        uint256 avgCulturalScore;    // 평균 문화 점수
-        uint256 priceCorrelation;    // 가격 상관도 (-10000 ~ 10000)
-        uint256 trendDirection;      // 0: 하락, 1: 유지, 2: 상승
+        uint256 totalMemeCount; // 관련 밈 총 개수
+        uint256 avgCulturalScore; // 평균 문화 점수
+        uint256 priceCorrelation; // 가격 상관도 (-10000 ~ 10000)
+        uint256 trendDirection; // 0: 하락, 1: 유지, 2: 상승
         uint256 lastUpdated;
-        string aiInsight;            // AI 인사이트 요약
+        string aiInsight; // AI 인사이트 요약
     }
 
     // 저장소
-    mapping(bytes32 => MemeData) public memes;           // memeId hash => MemeData
+    mapping(bytes32 => MemeData) public memes; // memeId hash => MemeData
     mapping(string => TokenAnalysis) public tokenAnalyses; // tokenSymbol => TokenAnalysis
-    mapping(string => bytes32[]) public tokenMemes;       // tokenSymbol => memeId hashes
+    mapping(string => bytes32[]) public tokenMemes; // tokenSymbol => memeId hashes
 
     bytes32[] public allMemeIds;
     string[] public trackedTokens;
 
     // 이벤트
     event MemeRecorded(
-        bytes32 indexed memeHash,
-        string memeId,
-        string tokenSymbol,
-        uint256 culturalScore,
-        uint256 timestamp
+        bytes32 indexed memeHash, string memeId, string tokenSymbol, uint256 culturalScore, uint256 timestamp
     );
 
     event TokenAnalysisUpdated(
-        string indexed tokenSymbol,
-        uint256 avgCulturalScore,
-        uint256 priceCorrelation,
-        string aiInsight
+        string indexed tokenSymbol, uint256 avgCulturalScore, uint256 priceCorrelation, string aiInsight
     );
 
     event OracleUpdated(address indexed oldOracle, address indexed newOracle);
@@ -190,9 +183,7 @@ contract MemeAnalytics {
     /**
      * @dev 특정 토큰의 최근 밈 조회 (최대 10개)
      */
-    function getRecentMemes(string calldata _tokenSymbol, uint256 _count)
-        external view returns (MemeData[] memory)
-    {
+    function getRecentMemes(string calldata _tokenSymbol, uint256 _count) external view returns (MemeData[] memory) {
         bytes32[] storage memeHashes = tokenMemes[_tokenSymbol];
         uint256 total = memeHashes.length;
         uint256 count = _count > total ? total : _count;

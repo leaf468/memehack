@@ -15,15 +15,21 @@ contract MemeReward {
     address public owner;
 
     // 보상 등급
-    enum RewardTier { Bronze, Silver, Gold, Platinum, Diamond }
+    enum RewardTier {
+        Bronze,
+        Silver,
+        Gold,
+        Platinum,
+        Diamond
+    }
 
     // 사용자 프로필
     struct UserProfile {
         uint256 totalRewardsEarned;
-        uint256 contributionScore;     // 기여도 점수
-        uint256 predictionAccuracy;    // 예측 정확도 (0-10000)
-        uint256 streakCount;           // 연속 성공 횟수
-        uint256 maxStreak;             // 최대 연속 성공
+        uint256 contributionScore; // 기여도 점수
+        uint256 predictionAccuracy; // 예측 정확도 (0-10000)
+        uint256 streakCount; // 연속 성공 횟수
+        uint256 maxStreak; // 최대 연속 성공
         RewardTier tier;
         uint256 lastClaimTime;
         bool isActive;
@@ -34,16 +40,16 @@ contract MemeReward {
         uint256 eventId;
         address user;
         uint256 amount;
-        string reason;                 // "prediction_win", "streak_bonus", "contribution", "daily"
+        string reason; // "prediction_win", "streak_bonus", "contribution", "daily"
         uint256 timestamp;
     }
 
     // 보상 설정
     struct RewardConfig {
-        uint256 baseReward;            // 기본 보상
-        uint256 streakMultiplier;      // 연속 보너스 배율 (100 = 1x)
-        uint256 tierMultiplier;        // 등급 보너스 배율
-        uint256 dailyClaimAmount;      // 일일 청구 가능량
+        uint256 baseReward; // 기본 보상
+        uint256 streakMultiplier; // 연속 보너스 배율 (100 = 1x)
+        uint256 tierMultiplier; // 등급 보너스 배율
+        uint256 dailyClaimAmount; // 일일 청구 가능량
     }
 
     // 저장소
@@ -62,29 +68,13 @@ contract MemeReward {
     uint256 public constant DIAMOND_THRESHOLD = 500;
 
     // 이벤트
-    event RewardDistributed(
-        address indexed user,
-        uint256 amount,
-        string reason,
-        uint256 eventId
-    );
+    event RewardDistributed(address indexed user, uint256 amount, string reason, uint256 eventId);
 
-    event TierUpgraded(
-        address indexed user,
-        RewardTier oldTier,
-        RewardTier newTier
-    );
+    event TierUpgraded(address indexed user, RewardTier oldTier, RewardTier newTier);
 
-    event StreakUpdated(
-        address indexed user,
-        uint256 newStreak,
-        bool isNewMax
-    );
+    event StreakUpdated(address indexed user, uint256 newStreak, bool isNewMax);
 
-    event DailyRewardClaimed(
-        address indexed user,
-        uint256 amount
-    );
+    event DailyRewardClaimed(address indexed user, uint256 amount);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Not owner");
@@ -107,38 +97,23 @@ contract MemeReward {
 
     function _initializeTierConfigs() internal {
         tierConfigs[RewardTier.Bronze] = RewardConfig({
-            baseReward: 10 * 1e18,
-            streakMultiplier: 100,
-            tierMultiplier: 100,
-            dailyClaimAmount: 5 * 1e18
+            baseReward: 10 * 1e18, streakMultiplier: 100, tierMultiplier: 100, dailyClaimAmount: 5 * 1e18
         });
 
         tierConfigs[RewardTier.Silver] = RewardConfig({
-            baseReward: 15 * 1e18,
-            streakMultiplier: 110,
-            tierMultiplier: 120,
-            dailyClaimAmount: 10 * 1e18
+            baseReward: 15 * 1e18, streakMultiplier: 110, tierMultiplier: 120, dailyClaimAmount: 10 * 1e18
         });
 
         tierConfigs[RewardTier.Gold] = RewardConfig({
-            baseReward: 25 * 1e18,
-            streakMultiplier: 125,
-            tierMultiplier: 150,
-            dailyClaimAmount: 20 * 1e18
+            baseReward: 25 * 1e18, streakMultiplier: 125, tierMultiplier: 150, dailyClaimAmount: 20 * 1e18
         });
 
         tierConfigs[RewardTier.Platinum] = RewardConfig({
-            baseReward: 50 * 1e18,
-            streakMultiplier: 150,
-            tierMultiplier: 200,
-            dailyClaimAmount: 40 * 1e18
+            baseReward: 50 * 1e18, streakMultiplier: 150, tierMultiplier: 200, dailyClaimAmount: 40 * 1e18
         });
 
         tierConfigs[RewardTier.Diamond] = RewardConfig({
-            baseReward: 100 * 1e18,
-            streakMultiplier: 200,
-            tierMultiplier: 300,
-            dailyClaimAmount: 100 * 1e18
+            baseReward: 100 * 1e18, streakMultiplier: 200, tierMultiplier: 300, dailyClaimAmount: 100 * 1e18
         });
     }
 
@@ -228,8 +203,7 @@ contract MemeReward {
         UserProfile storage profile = userProfiles[msg.sender];
 
         require(
-            profile.lastClaimTime == 0 || block.timestamp >= profile.lastClaimTime + 1 days,
-            "Already claimed today"
+            profile.lastClaimTime == 0 || block.timestamp >= profile.lastClaimTime + 1 days, "Already claimed today"
         );
 
         profile.lastClaimTime = block.timestamp;
@@ -252,13 +226,11 @@ contract MemeReward {
         userProfiles[_user].totalRewardsEarned += _amount;
         totalRewardsDistributed += _amount;
 
-        userRewardHistory[_user].push(RewardEvent({
-            eventId: rewardEventCounter,
-            user: _user,
-            amount: _amount,
-            reason: _reason,
-            timestamp: block.timestamp
-        }));
+        userRewardHistory[_user].push(
+            RewardEvent({
+                eventId: rewardEventCounter, user: _user, amount: _amount, reason: _reason, timestamp: block.timestamp
+            })
+        );
 
         emit RewardDistributed(_user, _amount, _reason, rewardEventCounter);
     }
@@ -269,7 +241,7 @@ contract MemeReward {
     function _checkAndUpgradeTier(address _user) internal {
         UserProfile storage profile = userProfiles[_user];
 
-        (uint256 totalPredictions, uint256 totalWins, ) = prediction.getUserStats(_user);
+        (uint256 totalPredictions, uint256 totalWins,) = prediction.getUserStats(_user);
 
         RewardTier newTier = profile.tier;
 
@@ -336,10 +308,7 @@ contract MemeReward {
     /**
      * @dev 리더보드 데이터 (상위 N명)
      */
-    function getLeaderboard(uint256 _count) external view returns (
-        address[] memory users,
-        uint256[] memory rewards
-    ) {
+    function getLeaderboard(uint256 _count) external view returns (address[] memory users, uint256[] memory rewards) {
         uint256 count = _count > registeredUsers.length ? registeredUsers.length : _count;
 
         users = new address[](count);
@@ -354,8 +323,10 @@ contract MemeReward {
         // 버블 정렬 (소규모용)
         for (uint256 i = 0; i < sortedUsers.length - 1; i++) {
             for (uint256 j = 0; j < sortedUsers.length - i - 1; j++) {
-                if (userProfiles[sortedUsers[j]].totalRewardsEarned <
-                    userProfiles[sortedUsers[j + 1]].totalRewardsEarned) {
+                if (
+                    userProfiles[sortedUsers[j]].totalRewardsEarned
+                        < userProfiles[sortedUsers[j + 1]].totalRewardsEarned
+                ) {
                     address temp = sortedUsers[j];
                     sortedUsers[j] = sortedUsers[j + 1];
                     sortedUsers[j + 1] = temp;

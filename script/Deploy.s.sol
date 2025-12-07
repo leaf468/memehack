@@ -88,23 +88,10 @@ contract DeployMISPLocal is Script {
         prediction.setRewardContract(address(reward));
 
         // 6. 테스트용 초기 데이터 설정
-        analytics.recordMeme(
-            "test_meme_001",
-            "WIF",
-            8500,
-            7500,
-            9000,
-            6500,
-            "US"
-        );
+        analytics.recordMeme("test_meme_001", "WIF", 8500, 7500, 9000, 6500, "US");
 
         analytics.updateTokenAnalysis(
-            "WIF",
-            150,
-            8500,
-            5000,
-            2,
-            "WIF shows strong viral momentum with increasing meme activity"
+            "WIF", 150, 8500, 5000, 2, "WIF shows strong viral momentum with increasing meme activity"
         );
 
         // 테스트용 예측 라운드 생성

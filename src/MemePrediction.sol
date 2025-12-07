@@ -14,39 +14,43 @@ contract MemePrediction {
     address public rewardContract;
 
     // 예측 라운드 상태
-    enum RoundStatus { Open, Closed, Resolved }
+    enum RoundStatus {
+        Open,
+        Closed,
+        Resolved
+    }
 
     // 예측 유형
     enum PredictionType {
-        ScoreUp,        // Cultural Score 상승
-        ScoreDown,      // Cultural Score 하락
-        TrendUp,        // 트렌드 상승 (확산 증가)
-        TrendDown,      // 트렌드 하락
-        RegionSpread    // 특정 지역으로 확산
+        ScoreUp, // Cultural Score 상승
+        ScoreDown, // Cultural Score 하락
+        TrendUp, // 트렌드 상승 (확산 증가)
+        TrendDown, // 트렌드 하락
+        RegionSpread // 특정 지역으로 확산
     }
 
     // 예측 라운드 구조체
     struct PredictionRound {
         uint256 roundId;
-        string tokenSymbol;          // 예측 대상 토큰
+        string tokenSymbol; // 예측 대상 토큰
         uint256 startTime;
         uint256 endTime;
-        uint256 resolutionTime;      // 결과 확정 시간
-        uint256 initialScore;        // 시작 시점 Cultural Score
-        uint256 finalScore;          // 종료 시점 Cultural Score
-        uint256 totalUpStake;        // 상승 예측 총 스테이킹
-        uint256 totalDownStake;      // 하락 예측 총 스테이킹
+        uint256 resolutionTime; // 결과 확정 시간
+        uint256 initialScore; // 시작 시점 Cultural Score
+        uint256 finalScore; // 종료 시점 Cultural Score
+        uint256 totalUpStake; // 상승 예측 총 스테이킹
+        uint256 totalDownStake; // 하락 예측 총 스테이킹
         RoundStatus status;
         PredictionType predictionType;
         bool resolved;
-        bool upWon;                  // true: 상승 예측 승리
+        bool upWon; // true: 상승 예측 승리
     }
 
     // 사용자 예측 구조체
     struct UserPrediction {
         uint256 roundId;
         address user;
-        bool predictedUp;            // true: 상승 예측
+        bool predictedUp; // true: 상승 예측
         uint256 stakeAmount;
         bool claimed;
         uint256 reward;
@@ -65,31 +69,14 @@ contract MemePrediction {
 
     // 이벤트
     event RoundCreated(
-        uint256 indexed roundId,
-        string tokenSymbol,
-        uint256 startTime,
-        uint256 endTime,
-        uint256 initialScore
+        uint256 indexed roundId, string tokenSymbol, uint256 startTime, uint256 endTime, uint256 initialScore
     );
 
-    event PredictionMade(
-        uint256 indexed roundId,
-        address indexed user,
-        bool predictedUp,
-        uint256 stakeAmount
-    );
+    event PredictionMade(uint256 indexed roundId, address indexed user, bool predictedUp, uint256 stakeAmount);
 
-    event RoundResolved(
-        uint256 indexed roundId,
-        bool upWon,
-        uint256 finalScore
-    );
+    event RoundResolved(uint256 indexed roundId, bool upWon, uint256 finalScore);
 
-    event RewardClaimed(
-        uint256 indexed roundId,
-        address indexed user,
-        uint256 reward
-    );
+    event RewardClaimed(uint256 indexed roundId, address indexed user, uint256 reward);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Not owner");
@@ -111,15 +98,15 @@ contract MemePrediction {
     /**
      * @dev 새 예측 라운드 생성
      */
-    function createRound(
-        string calldata _tokenSymbol,
-        uint256 _duration,
-        PredictionType _predictionType
-    ) external onlyOwner returns (uint256) {
+    function createRound(string calldata _tokenSymbol, uint256 _duration, PredictionType _predictionType)
+        external
+        onlyOwner
+        returns (uint256)
+    {
         currentRoundId++;
 
         // Analytics에서 현재 Cultural Score 가져오기
-        (, , uint256 avgCulturalScore, , , , ) = analytics.tokenAnalyses(_tokenSymbol);
+        (,, uint256 avgCulturalScore,,,,) = analytics.tokenAnalyses(_tokenSymbol);
 
         rounds[currentRoundId] = PredictionRound({
             roundId: currentRoundId,
@@ -137,13 +124,7 @@ contract MemePrediction {
             upWon: false
         });
 
-        emit RoundCreated(
-            currentRoundId,
-            _tokenSymbol,
-            block.timestamp,
-            block.timestamp + _duration,
-            avgCulturalScore
-        );
+        emit RoundCreated(currentRoundId, _tokenSymbol, block.timestamp, block.timestamp + _duration, avgCulturalScore);
 
         return currentRoundId;
     }
@@ -239,8 +220,7 @@ contract MemePrediction {
             uint256 platformFee = (totalLosingStake * platformFeePercent) / 100;
             uint256 rewardPool = totalLosingStake - platformFee;
 
-            uint256 reward = prediction.stakeAmount +
-                (rewardPool * prediction.stakeAmount) / totalWinningStake;
+            uint256 reward = prediction.stakeAmount + (rewardPool * prediction.stakeAmount) / totalWinningStake;
 
             prediction.reward = reward;
             userTotalWins[msg.sender]++;
@@ -262,9 +242,7 @@ contract MemePrediction {
     /**
      * @dev 사용자 예측 정보 조회
      */
-    function getUserPrediction(uint256 _roundId, address _user)
-        external view returns (UserPrediction memory)
-    {
+    function getUserPrediction(uint256 _roundId, address _user) external view returns (UserPrediction memory) {
         return userPredictions[_roundId][_user];
     }
 
@@ -272,7 +250,9 @@ contract MemePrediction {
      * @dev 사용자 통계 조회
      */
     function getUserStats(address _user)
-        external view returns (uint256 totalPredictions, uint256 totalWins, uint256 winRate)
+        external
+        view
+        returns (uint256 totalPredictions, uint256 totalWins, uint256 winRate)
     {
         totalPredictions = userTotalPredictions[_user];
         totalWins = userTotalWins[_user];

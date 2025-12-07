@@ -57,11 +57,11 @@ contract MISPTest is Test {
         analytics.recordMeme(
             "meme_001",
             "WIF",
-            8500,      // culturalScore
-            7000,      // viralVelocity
-            9000,      // sentimentScore
-            6500,      // correlationScore
-            "US"       // region
+            8500, // culturalScore
+            7000, // viralVelocity
+            9000, // sentimentScore
+            6500, // correlationScore
+            "US" // region
         );
 
         MemeAnalytics.MemeData memory meme = analytics.getMeme("meme_001");
@@ -73,10 +73,10 @@ contract MISPTest is Test {
         vm.prank(oracle);
         analytics.updateTokenAnalysis(
             "WIF",
-            150,       // totalMemeCount
-            7800,      // avgCulturalScore
-            5000,      // priceCorrelation (양의 상관관계)
-            2,         // trendDirection (상승)
+            150, // totalMemeCount
+            7800, // avgCulturalScore
+            5000, // priceCorrelation (양의 상관관계)
+            2, // trendDirection (상승)
             "WIF shows strong viral momentum with 200% meme increase in 3 hours"
         );
 
@@ -102,11 +102,7 @@ contract MISPTest is Test {
         analytics.updateTokenAnalysis("WIF", 100, 5000, 0, 1, "Test insight");
 
         // 라운드 생성
-        uint256 roundId = prediction.createRound(
-            "WIF",
-            1 hours,
-            MemePrediction.PredictionType.ScoreUp
-        );
+        uint256 roundId = prediction.createRound("WIF", 1 hours, MemePrediction.PredictionType.ScoreUp);
 
         assertEq(roundId, 1);
 
@@ -140,7 +136,7 @@ contract MISPTest is Test {
 
         // 2. 두 사용자가 반대 방향으로 예측
         vm.prank(user1);
-        prediction.predict{value: 0.1 ether}(1, true);  // 상승 예측
+        prediction.predict{value: 0.1 ether}(1, true); // 상승 예측
 
         vm.prank(user2);
         prediction.predict{value: 0.1 ether}(1, false); // 하락 예측
