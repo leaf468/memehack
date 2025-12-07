@@ -1,8 +1,9 @@
 // AI Analysis Service - Cultural Impact 분석 및 인사이트 생성
-// DexScreener + Reddit 데이터 통합 분석
+// DexScreener + Reddit + SentiCrypt 데이터 통합 분석
 
 import { TokenMarketData } from "./dexscreener";
 import { SubredditStats } from "./reddit";
+import { getMemeTokenSentiment, sentimentToLabel } from "./senticrypt";
 
 export interface TokenInsight {
   symbol: string;
@@ -13,6 +14,8 @@ export interface TokenInsight {
   insight: string;
   priceData: TokenMarketData;
   socialData?: SubredditStats;
+  sentimentScore?: number; // 0-100 from SentiCrypt
+  sentimentLabel?: "Bullish" | "Neutral" | "Bearish";
   riskLevel: "low" | "medium" | "high";
   prediction: {
     direction: "up" | "down" | "stable";
@@ -21,6 +24,7 @@ export interface TokenInsight {
   signals: {
     price: number;
     social: number;
+    sentiment: number; // SentiCrypt sentiment
     momentum: number;
   };
 }
@@ -45,27 +49,31 @@ export interface Alert {
 /**
  * 토큰별 종합 분석 및 인사이트 생성
  */
-export function generateTokenInsight(
+export async function generateTokenInsight(
   priceData: TokenMarketData,
   socialData?: SubredditStats
-): TokenInsight {
-  // Cultural Score 계산 (0-10000)
-  const culturalScore = calculateCulturalScore(priceData, socialData);
+): Promise<TokenInsight> {
+  // SentiCrypt 감정 데이터 가져오기
+  const sentimentScore = await getMemeTokenSentiment(priceData.symbol);
+  const sentimentLabel = sentimentToLabel(sentimentScore);
 
-  // 트렌드 결정
-  const trend = determineTrend(priceData, socialData);
+  // Cultural Score 계산 (0-10000) - 이제 SentiCrypt 데이터 포함
+  const culturalScore = calculateCulturalScore(priceData, socialData, sentimentScore);
+
+  // 트렌드 결정 - SentiCrypt 데이터 포함
+  const trend = determineTrend(priceData, socialData, sentimentScore);
 
   // 리스크 레벨 계산
-  const riskLevel = calculateRiskLevel(priceData, socialData);
+  const riskLevel = calculateRiskLevel(priceData, socialData, sentimentScore);
 
-  // 시그널 계산
-  const signals = calculateSignals(priceData, socialData);
+  // 시그널 계산 - SentiCrypt 데이터 포함
+  const signals = calculateSignals(priceData, socialData, sentimentScore);
 
   // 예측 생성
   const prediction = generatePrediction(signals, culturalScore);
 
   // AI 인사이트 텍스트 생성
-  const insight = generateInsightText(priceData, socialData, signals, trend);
+  const insight = generateInsightText(priceData, socialData, signals, trend, sentimentScore);
 
   return {
     symbol: priceData.symbol,
@@ -76,6 +84,8 @@ export function generateTokenInsight(
     insight,
     priceData,
     socialData,
+    sentimentScore,
+    sentimentLabel,
     riskLevel,
     prediction,
     signals,
@@ -84,25 +94,30 @@ export function generateTokenInsight(
 
 /**
  * Cultural Impact Score 계산
+ * SentiCrypt 감정 데이터 통합
  */
-function calculateCulturalScore(price: TokenMarketData, social?: SubredditStats): number {
+function calculateCulturalScore(price: TokenMarketData, social?: SubredditStats, sentiment?: number): number {
   let score = 0;
 
-  // 가격 모멘텀 (30%)
+  // 가격 모멘텀 (25%)
   const priceScore = Math.min(100, Math.max(0, 50 + price.change24h * 2));
-  score += priceScore * 30;
+  score += priceScore * 25;
 
-  // 거래 활동 (20%)
+  // 거래 활동 (15%)
   const volumeScore = Math.min(100, (price.volume24h / 1e8) * 10);
-  score += volumeScore * 20;
+  score += volumeScore * 15;
 
-  // 소셜 활동 (30%)
+  // 소셜 활동 (20%)
   if (social) {
     const socialScore = Math.min(100, (social.mentionCount / 100) * 50 + (social.sentiment || 50));
-    score += socialScore * 30;
+    score += socialScore * 20;
   } else {
-    score += 50 * 30; // 중립
+    score += 50 * 20; // 중립
   }
+
+  // SentiCrypt 감정 분석 (20%) - NEW
+  const sentimentScore = sentiment || 50;
+  score += sentimentScore * 20;
 
   // 유동성 (10%)
   const liquidityScore = Math.min(100, (price.liquidity / 1e7) * 10);
@@ -117,10 +132,12 @@ function calculateCulturalScore(price: TokenMarketData, social?: SubredditStats)
 
 /**
  * 시그널 계산
+ * SentiCrypt 감정 데이터 통합
  */
-function calculateSignals(price: TokenMarketData, social?: SubredditStats): {
+function calculateSignals(price: TokenMarketData, social?: SubredditStats, sentiment?: number): {
   price: number;
   social: number;
+  sentiment: number;
   momentum: number;
 } {
   // Price signal (-100 to 100)
@@ -134,23 +151,30 @@ function calculateSignals(price: TokenMarketData, social?: SubredditStats): {
     if (social.postsLast24h > 50) socialSignal += 15;
   }
 
-  // Momentum signal
-  const momentum = (priceSignal + socialSignal) / 2 + (price.buySellRatio > 1.2 ? 20 : price.buySellRatio < 0.8 ? -20 : 0);
+  // SentiCrypt sentiment signal (-100 to 100)
+  const sentimentSignal = sentiment ? (sentiment - 50) * 2 : 0;
+
+  // Momentum signal - 가격, 소셜, 감정 모두 반영
+  const momentum = (priceSignal * 0.4 + socialSignal * 0.3 + sentimentSignal * 0.3) +
+    (price.buySellRatio > 1.2 ? 20 : price.buySellRatio < 0.8 ? -20 : 0);
 
   return {
     price: Math.round(priceSignal),
     social: Math.round(socialSignal),
+    sentiment: Math.round(sentimentSignal),
     momentum: Math.round(Math.max(-100, Math.min(100, momentum))),
   };
 }
 
 /**
  * 트렌드 결정
+ * SentiCrypt 감정 데이터 통합
  */
-function determineTrend(price: TokenMarketData, social?: SubredditStats): number {
-  const priceWeight = 0.5;
-  const socialWeight = 0.3;
-  const volumeWeight = 0.2;
+function determineTrend(price: TokenMarketData, social?: SubredditStats, sentiment?: number): number {
+  const priceWeight = 0.4;
+  const socialWeight = 0.2;
+  const sentimentWeight = 0.25; // SentiCrypt
+  const volumeWeight = 0.15;
 
   let score = 0;
 
@@ -168,6 +192,12 @@ function determineTrend(price: TokenMarketData, social?: SubredditStats): number
     score += 1 * socialWeight;
   }
 
+  // SentiCrypt 감정 트렌드
+  const sentimentScore = sentiment || 50;
+  if (sentimentScore > 65) score += 2 * sentimentWeight;
+  else if (sentimentScore > 50) score += 1 * sentimentWeight;
+  else if (sentimentScore > 40) score += 0.5 * sentimentWeight;
+
   // 볼륨 트렌드
   if (price.volume24h > 1e8) score += 2 * volumeWeight;
   else if (price.volume24h > 1e7) score += 1 * volumeWeight;
@@ -179,16 +209,18 @@ function determineTrend(price: TokenMarketData, social?: SubredditStats): number
 
 /**
  * 리스크 레벨 계산
+ * SentiCrypt 감정 데이터 통합
  */
-function calculateRiskLevel(price: TokenMarketData, social?: SubredditStats): "low" | "medium" | "high" {
+function calculateRiskLevel(price: TokenMarketData, social?: SubredditStats, sentiment?: number): "low" | "medium" | "high" {
   const volatility = Math.abs(price.change24h);
   const liquidityRisk = price.liquidity < 1e6 ? 2 : price.liquidity < 1e7 ? 1 : 0;
-  const sentimentRisk = social && social.sentiment < 40 ? 1 : 0;
+  const socialSentimentRisk = social && social.sentiment < 40 ? 1 : 0;
+  const sentiCryptRisk = sentiment && sentiment < 35 ? 1 : 0; // SentiCrypt 감정 리스크
 
-  const totalRisk = (volatility > 20 ? 2 : volatility > 10 ? 1 : 0) + liquidityRisk + sentimentRisk;
+  const totalRisk = (volatility > 20 ? 2 : volatility > 10 ? 1 : 0) + liquidityRisk + socialSentimentRisk + sentiCryptRisk;
 
-  if (totalRisk >= 3) return "high";
-  if (totalRisk >= 1) return "medium";
+  if (totalRisk >= 4) return "high";
+  if (totalRisk >= 2) return "medium";
   return "low";
 }
 
@@ -215,12 +247,14 @@ function generatePrediction(
 
 /**
  * AI 인사이트 텍스트 생성
+ * SentiCrypt 감정 데이터 통합
  */
 function generateInsightText(
   price: TokenMarketData,
   social: SubredditStats | undefined,
-  signals: { price: number; social: number; momentum: number },
-  trend: number
+  signals: { price: number; social: number; sentiment: number; momentum: number },
+  trend: number,
+  sentiment?: number
 ): string {
   const insights: string[] = [];
 
@@ -229,11 +263,20 @@ function generateInsightText(
     insights.push(`${price.change24h > 0 ? "📈" : "📉"} ${Math.abs(price.change24h).toFixed(1)}% in 24h`);
   }
 
+  // SentiCrypt 감정 분석 (우선순위 높음)
+  if (sentiment) {
+    if (sentiment > 70) {
+      insights.push(`Market sentiment bullish (${sentiment}%)`);
+    } else if (sentiment < 35) {
+      insights.push(`Market sentiment bearish (${sentiment}%)`);
+    }
+  }
+
   // 소셜 분석
   if (social) {
-    if (social.sentiment > 75) {
-      insights.push(`Strong bullish sentiment (${social.sentiment}%)`);
-    } else if (social.sentiment < 40) {
+    if (social.sentiment > 75 && !insights.some(i => i.includes("sentiment"))) {
+      insights.push(`Strong community sentiment (${social.sentiment}%)`);
+    } else if (social.sentiment < 40 && !insights.some(i => i.includes("sentiment"))) {
       insights.push(`Bearish community mood (${social.sentiment}%)`);
     }
 

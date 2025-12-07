@@ -50,14 +50,13 @@ export function useTokenData(): UseTokenDataResult {
       setPriceData(prices);
       setSocialData(social);
 
-      // 각 토큰별 인사이트 생성
-      const tokenInsights: TokenInsight[] = [];
-
-      for (const price of prices) {
-        const socialInfo = social.find((s) => s.symbol === price.symbol);
-        const insight = generateTokenInsight(price, socialInfo);
-        tokenInsights.push(insight);
-      }
+      // 각 토큰별 인사이트 생성 (async - SentiCrypt API 호출 포함)
+      const tokenInsights: TokenInsight[] = await Promise.all(
+        prices.map(async (price) => {
+          const socialInfo = social.find((s) => s.symbol === price.symbol);
+          return await generateTokenInsight(price, socialInfo);
+        })
+      );
 
       // Market Cap 기준 정렬
       tokenInsights.sort((a, b) => b.priceData.marketCap - a.priceData.marketCap);
@@ -98,7 +97,7 @@ export function useTokenData(): UseTokenDataResult {
     refresh: fetchData,
     dataSource: {
       price: "DexScreener + CoinPaprika (Free, No API Key)",
-      social: "Reddit (Free, No API Key)",
+      social: "Reddit + SentiCrypt (Free, No API Key)",
     },
   };
 }
@@ -124,7 +123,7 @@ export function useTokenDetail(symbol: string) {
         const socialInfo = social.find((s) => s.symbol === symbol);
 
         if (price) {
-          setInsight(generateTokenInsight(price, socialInfo));
+          setInsight(await generateTokenInsight(price, socialInfo));
         }
       } catch (error) {
         console.error("Failed to fetch token detail:", error);
